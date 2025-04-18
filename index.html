@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot Truy Vấn SQL - Nhà Trọ</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      input {
+        width: 80%;
+        padding: 10px;
+        margin: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      button {
+        padding: 10px 20px;
+        background-color: blue;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      button:hover {
+        background-color: darkblue;
+      }
+      .response {
+        background: #f4f4f4;
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        max-width: 800px;
+        margin: 10px auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Chatbot Nhà Trọ</h1>
+    <p>Nhập câu hỏi của bạn về nhà trọ:</p>
+
+    <input type="text" id="question" placeholder="Nhập câu hỏi của bạn..." />
+    <button onclick="sendQuestion()">Gửi</button>
+
+    <h3>Câu trả lời:</h3>
+    <div id="answer" class="response">Chưa có câu trả lời.</div>
+
+    <script>
+      async function sendQuestion() {
+        const questionInput = document.getElementById("question");
+        const answerField = document.getElementById("answer");
+
+        if (!questionInput.value) {
+          alert("Vui lòng nhập câu hỏi!");
+          return;
+        }
+
+        // Hiển thị thông báo đang xử lý
+        answerField.innerHTML = "Đang xử lý...";
+
+        try {
+          // Gửi yêu cầu đến API `/query`
+          const response = await fetch("/query", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: questionInput.value }),
+          });
+          const result = await response.json();
+
+          // Nếu có câu trả lời dạng text do Gemini tạo ra thì ưu tiên hiển thị nó
+          if (result.answer && result.answer.trim() !== "") {
+            answerField.innerHTML = result.answer;
+          } else if (result.data && result.data.length > 0) {
+            // Nếu không có câu trả lời dạng text, hiển thị dữ liệu truy vấn dưới dạng bảng
+            let formattedAnswer = result.data
+              .map((row) => {
+                return `📌 **Phòng:** ${row.id} - Địa chỉ: ${row.address} - Giá: ${row.price} VNĐ`;
+              })
+              .join("<br><br>");
+            answerField.innerHTML = formattedAnswer;
+          } else {
+            answerField.innerHTML = "Không có dữ liệu phù hợp.";
+          }
+        } catch (error) {
+          answerField.innerHTML = "Đã xảy ra lỗi. Vui lòng thử lại.";
+          console.error("Error:", error);
+        }
+      }
+    </script>
+  </body>
+</html>
