@@ -58,8 +58,7 @@ Bảng 8 Mô tả bảng accomodation
 - toilet: bit (Tình trạng toilet (vệ sinh khép kín không))
 - time: bit (Giờ giấc thoải mái không)
 - water_price: double (Giá nước)
-- x_coordinate: double (Tọa độ x)
-- y_coordinate: double (Tọa độ y)
+
 - district_id: bigint (ID khu vực, khóa ngoại)
 - post_id: bigint (ID tin đăng, khóa ngoại)
 - Kitchen: bit (Có kệ bếp không)
@@ -84,8 +83,7 @@ Bảng 10 Mô tả bảng comment
 Bảng 11 Mô tả bảng district (khu vực)
 - id: bigint (ID, khóa chính)
 - name: varchar (Tên khu vực)
-- x_coordinate: double (Tọa độ x)
-- y_coordinate: double (Tọa độ y)
+
 
 Bảng 12 Mô tả bảng action
 - id: bigint (ID, khóa chính)
