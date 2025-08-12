@@ -25,7 +25,7 @@ const db = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "Duonghieutkhd123",
-  database: "kltn",
+  database: "motelroom_management",
 });
 
 db.connect((err) => {
@@ -37,7 +37,7 @@ db.connect((err) => {
 });
 
 // Cấu hình Gemini AI
-const apiKey = "";
+const apiKey = "AIzaSyBcm7yx30JoPd0yFT0vj5SpQk-CrBHtYFM";
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 const generationConfig = {
@@ -49,16 +49,32 @@ const generationConfig = {
 
 // Các từ khóa SQL nguy hiểm cần chặn (có thể mở rộng thêm nếu cần)
 const DANGEROUS_SQL = [
-  "insert", "update", "delete", "drop", "alter", "create", "truncate", "grant", "revoke", "replace",
-  "shutdown", "restart", "exec", "call"
+  "insert",
+  "update",
+  "delete",
+  "drop",
+  "alter",
+  "create",
+  "truncate",
+  "grant",
+  "revoke",
+  "replace",
+  "shutdown",
+  "restart",
+  "exec",
+  "call",
 ];
 
-// Hàm kiểm tra nội dung độc hại (Biên, phân vùng tương đương, Regex mạnh mẽ hơn)
+// Hàm kiểm tra nội dung độc hại (Biên, phân vùng tương đương)
 function isDangerousQuestion(question) {
   const lower = question.toLowerCase();
   // Nếu chứa bất kỳ từ khoá nguy hiểm hoặc yêu cầu thực thi lệnh
-  return DANGEROUS_SQL.some((kw) => lower.includes(kw)) ||
-    /xóa|xoá|thay\s*đổi|chỉnh\s*sửa|xóa\s*dữ\s*liệu|xoa\s*dữ\s*liệu|tạo\s*mới|cấp\s*quyền|xóa\s*bảng|reset|thực\s*thi\s*lệnh|bật\s*chế\s*độ|gán\s*quyền|update|delete|insert|drop|grant|revoke|replace|truncate/i.test(lower);
+  return (
+    DANGEROUS_SQL.some((kw) => lower.includes(kw)) ||
+    /xóa|xoá|thay\s*đổi|chỉnh\s*sửa|xóa\s*dữ\s*liệu|xoa\s*dữ\s*liệu|tạo\s*mới|cấp\s*quyền|xóa\s*bảng|reset|thực\s*thi\s*lệnh|bật\s*chế\s*độ|gán\s*quyền|update|delete|insert|drop|grant|revoke|replace|truncate/i.test(
+      lower
+    )
+  );
 }
 
 // Route hiển thị giao diện
@@ -75,15 +91,15 @@ app.post("/query", async (req, res) => {
   // 1. **Chặn các câu hỏi độc hại**
   if (isDangerousQuestion(userQuestion)) {
     return res.status(403).json({
-      error: "Bạn không có quyền thực hiện yêu cầu này. Bạn chỉ được phép xem thông tin, không được thực hiện thao tác thay đổi hệ thống!"
+      error:
+        "Bạn không có quyền thực hiện yêu cầu này. Bạn chỉ được phép xem thông tin, không được thực hiện thao tác thay đổi hệ thống!",
     });
   }
 
   try {
     // 2. **Thay đổi prompt để nhấn mạnh quyền hạn người dùng**
     //    Gửi thêm hướng dẫn cho AI: "Người hỏi chỉ là user thông thường, không phải admin, không thực hiện lệnh thay đổi hệ thống"
-    const safePrompt =
-      `Người hỏi dưới đây là người dùng bình thường (không phải admin), chỉ được phép xem các thông tin bot cung cấp, tuyệt đối không được thực hiện hoặc hướng dẫn bất kỳ thao tác nào thay đổi dữ liệu hay cấu hình hệ thống. Nếu phát hiện yêu cầu thay đổi dữ liệu, trả lời lịch sự rằng không được phép.
+    const safePrompt = `Người hỏi dưới đây là người dùng bình thường (không phải admin), chỉ được phép xem các thông tin bot cung cấp, tuyệt đối không được thực hiện hoặc hướng dẫn bất kỳ thao tác nào thay đổi dữ liệu hay cấu hình hệ thống. Nếu phát hiện yêu cầu thay đổi dữ liệu, trả lời lịch sự rằng không được phép.
       
       Câu hỏi: ${userQuestion}
       ${promptTemplate(userQuestion)}
@@ -100,7 +116,8 @@ app.post("/query", async (req, res) => {
     // 3. **Chặn SQL độc hại ngay trước khi query thực tế**
     if (isDangerousQuestion(sqlQuery)) {
       return res.status(403).json({
-        error: "Yêu cầu truy vấn của bạn chứa thao tác không an toàn. Vui lòng chỉ thực hiện các thao tác xem dữ liệu!"
+        error:
+          "Yêu cầu truy vấn của bạn chứa thao tác không an toàn. Vui lòng chỉ thực hiện các thao tác xem dữ liệu!",
       });
     }
 
